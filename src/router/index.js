@@ -74,14 +74,26 @@ export const constantRoutes = [
     ]
   },
   {
-    path: '/emploee',
+    path: '/products',
     component: Layout,
     children: [
       {
         path: 'list',
-        name: 'csemploee',
-        component: () => import('@/pages/employee/List'),
-        meta: { title: '员工管理', icon: 'example' }
+        name: 'csproduct',
+        component: () => import('@/pages/products/List'),
+        meta: { title: '产品管理', icon: 'eye' }
+      }
+    ]
+  },
+  {
+    path: '/lanmuguanli',
+    component: Layout,
+    children: [
+      {
+        path: 'list',
+        name: 'cslanmu',
+        component: () => import('@/pages/lanmuguanli/List'),
+        meta: { title: '栏目管理', icon: 'eye-open' }
       }
     ]
   },

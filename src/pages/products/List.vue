@@ -17,10 +17,9 @@
 					<a href @click.prevent="toDeleteHandler(slot.row.id)">
 						<i class="el-icon-delete"></i>
 					</a>
-					<a href @click.prevent="toUpdateHandler">
+					<a href @click.prevent="toUpdateHandler(slot.row)">
 						<i class="el-icon-edit"></i>
 					</a>
-					<a href @click.prevent="toUpdateHandler">详情</a>
 				</template>
 			</el-table-column>
 		</el-table>
@@ -68,6 +67,10 @@ export default {
 			});
 		},
 		submitHandler() {
+			this.form = {
+				type: "products"
+			};
+			this.title = "添加产品信息";
 			//this.form 对象 ---字符串--> 后台 {type:'customer',age:12}
 			// json字符串 '{"type":"customer","age":12}'
 			// request.post(url,this.form)
@@ -94,7 +97,7 @@ export default {
 			});
 		},
 		toDeleteHandler(id) {
-			this.$confirm("此操作将永久删除该文件, 是否继续?", "提示", {
+			this.$confirm("此操作将永久删除该条目, 是否继续?", "提示", {
 				confirmButtonText: "确定",
 				cancelButtonText: "取消",
 				type: "warning"
@@ -105,8 +108,10 @@ export default {
 				});
 			});
 		},
-		toUpdateHandler() {
+		toUpdateHandler(frm) {
+			this.title = "更新产品信息";
 			this.visible = true;
+			this.form = frm;
 		},
 		closeModalHandler() {
 			this.visible = false;

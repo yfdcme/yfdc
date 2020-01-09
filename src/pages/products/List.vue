@@ -1,150 +1,174 @@
+/* eslint-disable vue/html-self-closing */
 <template>
-<div>
-	<h2>产品管理</h2>
-	<!-- 按钮 -->
-	<el-button type="primary" size="small" @click="toAddHandler">添加</el-button>
-	<el-button type="danger" size="small">批量删除</el-button>
-	<!-- /按钮 -->
-	<!-- 表格 -->
-	<el-table :data="products">
-		<el-table-column prop="id" label="编号"></el-table-column>
-		<el-table-column prop="name" label="产品名称"></el-table-column>
-		<el-table-column prop="price" label="价格"></el-table-column>
-		<el-table-column prop="description" label="描述"></el-table-column>
-		<el-table-column prop="categoryId" label="所属分类"></el-table-column>
-		<el-table-column label="操作">
-			<template v-slot="slot">
-				<a href @click.prevent="toDeleteHandler(slot.row.id)">
-					<i class="el-icon-delete"></i>
-				</a>
-				<a href @click.prevent="toUpdateHandler(slot.row)">
-					<i class="el-icon-edit"></i>
-				</a>
-			</template>
-		</el-table-column>
-	</el-table>
-	<!-- /表格结束 -->
-	<!-- 模态框 -->
-	<el-dialog title="录入产品信息" :visible.sync="visible" width="60%">
-		--{{form}}--
-		<el-form :model="form" label-width="80px">
-			<el-form-item label="产品名称">
-				<el-input v-model="form.name"></el-input>
-			</el-form-item>
-			<el-form-item label="价格">
-				<el-input v-model="form.price"></el-input>
-			</el-form-item>
-			<el-form-item label="描述">
-				<el-input type="textarea" v-model="form.description"></el-input>
-			</el-form-item>
-			<el-form-item label="所属栏目">
-				<el-select v-model="form.categoryId" placeholder="请选择">
-					<el-option v-for="item in option" :key="item.id" :label="item.name" :value="item.id" />
-				</el-select>
-			</el-form-item>
-		</el-form>
-		<span slot="footer" class="dialog-footer">
-			<el-button size="small" @click="closeModalHandler">取 消</el-button>
-			<el-button size="small" type="primary" @click="submitHandler">确 定</el-button>
-		</span>
-	</el-dialog>
-	<!-- /模态框 -->
-</div>
+  <div>
+    <h2>产品管理</h2>
+    <!-- 按钮 -->
+    <el-button type="primary" size="small" @click="toAddHandler">添加</el-button>
+    <el-button type="danger" size="small">批量删除</el-button>
+    <!-- /按钮 -->
+    <!-- 表格 -->
+    <el-table :data="products">
+      <elphoto-table-column prop="id" label="编号" />
+      <el-table-column prop="name" label="产品名称" />
+      <el-table-column prop="price" label="价格" />
+      <el-table-column label="产品图片">
+        <template slot-scope="scope">
+          <img :src="scope.row.photo" width="200" height="200">
+        </template>
+      </el-table-column>
+      <el-table-column prop="description" width="200" label="描述" />
+      <el-table-column prop="categoryId" label="所属分类" />
+      <el-table-column label="操作">
+        <template v-slot="slot">
+          <a href @click.prevent="toDeleteHandler(slot.row.id)">
+            <i class="el-icon-delete" />
+          </a>
+          <a href @click.prevent="toUpdateHandler(slot.row)">
+            <i class="el-icon-edit" />
+          </a>
+        </template>
+      </el-table-column>
+    </el-table>
+    <!-- /表格结束 -->
+    <!-- 模态框 -->
+    <el-dialog :title="title" :visible.sync="visible" width="60%">
+      --{{ form }}--
+      <el-form :model="form" label-width="80px">
+        <el-form-item label="产品名称">
+          <el-input v-model="form.name" />
+        </el-form-item>
+        <el-form-item label="价格">
+          <el-input v-model="form.price" />
+        </el-form-item>
+        <el-form-item label="描述">
+          <el-input v-model="form.description" type="textarea" />
+        </el-form-item>
+        <el-form-item label="所属栏目">
+          <el-select v-model="form.categoryId" placeholder="请选择">
+            <el-option v-for="item in option" :key="item.id" :label="item.name" :value="item.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="图片">
+          <el-upload :on-success="ygg" class="upload-demo" action="http://134.175.154.93:6677/file/upload" :file-list="fileList" list-type="picture">
+            <el-button size="small" type="primary">点击上传</el-button>
+            <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button size="small" @click="closeModalHandler">取 消</el-button>
+        <el-button size="small" type="primary" @click="submitHandler">确 定</el-button>
+      </span>
+    </el-dialog>
+    <!-- /模态框 -->
+  </div>
 </template>
 
 <script>
-import request from "@/utils/request";
-import querystring from "querystring";
+import request from '@/utils/request'
+import querystring from 'querystring'
 export default {
-	// 用于存放网页中需要调用的方法
-	methods: {
-		loadData() {
-			let url = "http://[::1]:6677/product/findAll";
-			request.get(url).then(response => {
-				// 将查询结果设置到customers中，this指向外部函数的this
-				this.products = response.data;
-			});
-		},
-		loadCate() {
-			let url = "http://[::1]:6677/category/findAll";
-			request.get(url).then(response => {
-				// 将查询结果设置到customers中，this指向外部函数的this
-				this.option = response.data;
-			});
-		},
-		submitHandler() {
-			//this.form 对象 ---字符串--> 后台 {type:'customer',age:12}
-			// json字符串 '{"type":"customer","age":12}'
-			// request.post(url,this.form)
-			// 查询字符串 type=customer&age=12
-			// 通过request与后台进行交互，并且要携带参数
-			let url = "http://[::1]:6677/product/saveOrUpdate";
-			request({
-				url,
-				method: "POST",
-				headers: {
-					"Content-Type": "application/x-www-form-urlencoded"
-				},
-				data: querystring.stringify(this.form)
-			}).then(response => {
-				// 模态框关闭
-				this.closeModalHandler();
-				// 刷新
-				this.loadData();
-				// 提示消息
-				this.$message({
-					type: "success",
-					message: response.message
-				});
-			});
-		},
-		toDeleteHandler(id) {
-			this.$confirm("此操作将永久删除该条目, 是否继续?", "提示", {
-				confirmButtonText: "确定",
-				cancelButtonText: "取消",
-				type: "warning"
-			}).then(() => {
-				let url = 'http://[::1]:6677/product/deleteById?id=';
-				request.get(url+id).then((resp)=>{
-					this.$message({
-						type:'success',
-						message:resp.message
-					});
-				});
-			});
-			this.loadData();
-		},
-		toUpdateHandler(frm) {
-			this.title = "更新产品信息";
-			this.visible = true;
-			this.form = frm;
-		},
-		closeModalHandler() {
-			this.visible = false;
-		},
-		toAddHandler() {
-			this.form = {};
-			this.title = "添加产品信息";
-			this.visible = true;
-		}
-	},
-	// 用于存放要向网页中显示的数据
-	data() {
-		return {
-			option: {},
-			visible: false,
-			products: [],
-			form: {},
-			checked: true
-		};
-	},
-	created() {
-		// this为当前vue实例对象
-		// vue实例创建完毕
-		this.loadData();
-		this.loadCate();
-	}
-};
+  // 用于存放要向网页中显示的数据
+  data() {
+    return {
+      title: '添加产品信息',
+      fileList: [],
+      option: {},
+      visible: false,
+      products: [],
+      form: {},
+      checked: true
+    }
+  },
+  created() {
+    // this为当前vue实例对象
+    // vue实例创建完毕
+    this.loadData()
+    this.loadCate()
+  },
+  // 用于存放网页中需要调用的方法
+  methods: {
+    ygg(ex) {
+      this.form.photo =
+                'http://134.175.154.93:8888' +
+                '/' +
+                ex.data.groupname +
+                '/' +
+                ex.data.id
+    },
+    loadData() {
+      const url = 'http://[::1]:6677/product/findAll'
+      request.get(url).then(response => {
+        // 将查询结果设置到customers中，this指向外部函数的this
+        this.products = response.data
+      })
+    },
+    loadCate() {
+      const url = 'http://[::1]:6677/category/findAll'
+      request.get(url).then(response => {
+        // 将查询结果设置到customers中，this指向外部函数的this
+        this.option = response.data
+      })
+    },
+    submitHandler() {
+      // this.form 对象 ---字符串--> 后台 {type:'customer',age:12}
+      // json字符串 '{"type":"customer","age":12}'
+      // request.post(url,this.form)
+      // 查询字符串 type=customer&age=12
+      // 通过request与后台进行交互，并且要携带参数
+      const url = 'http://[::1]:6677/product/saveOrUpdate'
+      request({
+        url,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        data: querystring.stringify(this.form)
+      }).then(response => {
+        // 模态框关闭
+        this.closeModalHandler()
+        // 刷新
+        this.loadData()
+        // 提示消息
+        this.$message({
+          type: 'success',
+          message: response.message
+        })
+      })
+    },
+    toDeleteHandler(id) {
+      this.$confirm('此操作将永久删除该条目, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        const url = 'http://[::1]:6677/product/deleteById?id='
+        request.get(url + id).then(resp => {
+          this.$message({
+            type: 'success',
+            message: resp.message
+          })
+        })
+      })
+      this.loadData()
+    },
+    toUpdateHandler(frm) {
+      this.fileList = []
+      this.title = '更新产品信息'
+      this.visible = true
+      this.form = frm
+    },
+    closeModalHandler() {
+      this.visible = false
+    },
+    toAddHandler() {
+      this.fileList = []
+      this.form = {}
+      this.title = '添加产品信息'
+      this.visible = true
+    }
+  }
+}
 </script>
 
 <style scoped>

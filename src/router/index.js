@@ -68,8 +68,8 @@ export const constantRoutes = [
       {
         path: 'list',
         name: 'csuser',
-        component: () => import('@/pages/user/List'),
-        meta: { title: '用户管理', icon: 'tree' }
+        component: () => import('@/pages/employee/List'),
+        meta: { title: '员工管理', icon: 'tree' }
       }
     ]
   },
